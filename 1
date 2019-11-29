@@ -1,0 +1,94 @@
+import math
+a = 6378137.00
+f = 0.003352811
+b = 6356752.314245180
+le1 = input ("Широта 1"'\n' )
+le2 = input ("Широта 2"'\n')
+la1 = float (le1)
+la2 = float (le2)
+lu1 = input ("Долгота 1"'\n')
+lu2 = input ("Долгота 2"'\n')
+lo1 = float (lu1)
+lo2 = float (lu2)
+print ('Широта 1=%1.10f'  %la1)
+print ('Широта 2=%1.10f'  %la2)
+print ('Долгота 1=%1.10f' %lo1)
+print ('Долгота 2=%1.10f' %lo2)
+print('Обратная геодезическая задача')
+ez1 = math.radians(la1)
+ez2 = math.radians(la2)
+u1 = math.atan((1.0 - f) * math.tan(ez1))
+u2 = math.atan((1.0 - f) * math.tan(ez2))
+L = math.radians((lo2 - lo1))
+lamb = L
+x=1
+while abs(x)>10**-20:
+  sinArc = math.sqrt((math.cos(u2) * math.sin(lamb))**2 +(math.cos(u1) * math.sin(u2) -math.sin(u1) * math.cos(u2) * math.cos(lamb))**2)
+  cosArc = math.sin(u1) * math.sin(u2) + math.cos(u1) * math.cos(u2)* math.cos(lamb)
+  arc = math.atan(sinArc/cosArc)
+  sinAzimuth = (math.cos(u1) * math.cos(u2)*math.sin(lamb)/sinArc)
+  cosAzimuthSqr= 1.0 -sinAzimuth**2
+  cosProduct = cosArc - (2.0 * math.sin(u1) * math.sin(u2))/cosAzimuthSqr
+  C = f / 16.0 * cosAzimuthSqr * (4.0 + f * (4.0 - 3.0 * cosAzimuthSqr))
+  lambs=lamb
+  lamb = L + (1.0 - C) * f * sinAzimuth * (arc + C * sinArc * (cosProduct + C * cosArc *(-1.0 + 2.0 * math.pow(cosProduct, 2.0))))
+  x= lamb-lambs
+ 
+print('λ=', lamb)
+U2 = cosAzimuthSqr * ((a**2 - b**2) / b**2)
+print('u^2=', U2)
+k1= (math.sqrt(1+U2)-1)/(math.sqrt(1+U2)+1)
+A = (1+0.25*k1**2)/(1-k1)
+print('A=', A)
+B = k1*(1-3/8*k1**2)
+print('B=', B)
+ds = B * sinArc * (cosProduct + 1 / 4 * B *(cosArc * (-1.0 + 2.0 * cosProduct**2.0) -(B / 6.0) * cosProduct * (-3.0 + 4.0 * sinArc**2) *(-3.0 + 4.0 * cosProduct**2)))
+print('∆ σ=', ds)
+s = b * A * (arc - ds)
+print('S=', s)
+alfa1 = (math.cos(u2) * math.sin(lamb)) / (
+    math.cos(u1) * math.sin(u2) - math.sin(u1) * math.cos(u2) * math.cos(lamb))
+alf1 = math.atan(alfa1)
+alfaus2 = (math.cos(u1) * math.sin(lamb)) / (
+    -1 * math.sin(u1) * math.cos(u2) +
+    math.cos(u1) * math.sin(u2) * math.cos(lamb))
+alf2 = math.atan(alfaus2)
+print('α1=', math.degrees(alf1))
+print('α2=', math.degrees(alf2))
+print('Прямая геодезическая задача')
+UU1 = (1-f)*math.tan(ez1)
+UU = math.atan(UU1)
+sig1 = math.atan2(UU1,math.cos(alf1))
+sinalf = math.cos(UU) * math.sin(alf1)
+cos2alf = 1 - sinalf**2
+u2mal = cos2alf * ((a**2 - b**2) / b**2)
+k2=(math.sqrt(1+u2mal)-1)/(math.sqrt(1+u2mal)+1)
+AA = (1+0.25*k2**2)/(1-k2)
+BB =k2*(1-3/8*k2**2)
+damb = 10
+D = s / (b * AA)
+while abs(damb) > 10**(-20):
+ s2m = 2 * sig1 + D
+ Dels = BB * math.sin(D) * (math.cos(s2m) +  1/4 * BB * (math.cos(D) * (-1 + 2 * math.cos(s2m)**2) - BB / 6 * math.cos(s2m) *(-3 + 4 * math.sin(D)**2) * (-3 + 4 * math.cos(s2m)**2)))
+ sr=D
+ D = s / (b * AA) + Dels
+ damb=D-sr
+print('σ=', D)
+n1= (1.0 - f) * math.sqrt(sinalf**2.0 +(math.sin(UU) * math.sin(D) - math.cos(UU) * math.cos(D) * math.cos(alf1))**2.0)
+n2=math.sin(UU) * math.cos(D)+math.cos(UU) * math.sin(D) * math.cos(alf1)
+fi2 = math.atan2(n2,n1)
+print('ф= %1.2f'% math.degrees(fi2))
+m1 = (math.sin(D) * math.sin(alf1)) / (
+    math.cos(UU) * math.cos(D) - math.sin(UU) * math.sin(D) * math.cos(alf1))
+lyam = math.atan(m1)
+print('λ=', lyam)
+C = f / 16 * cos2alf * (4 + f * (4 - 3 * cos2alf))
+L = lyam - (1 - C) * f * sinalf * (D + C * math.sin(D) *
+                                   (math.cos(s2m) + C * math.cos(D) *
+                                    (-1 + 2 * math.cos(s2m)**2)))
+L2 = L + lo1
+print('L2= %1.f'% math.degrees(L2))
+b1 = -1 * math.sin(UU) * math.sin(D) + math.cos(UU) * math.cos(D) * math.cos(
+    alf1)
+alfa2 = math.atan(sinalf / b1)
+print('α2= %1.10f'% math.degrees(alfa2))
